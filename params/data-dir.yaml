@@ -1,0 +1,11 @@
+---
+Name: consul/data-dir
+Description: Consul Data Directory
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  Consul persistent data directory
+Schema:
+  default: /var/lib/consul
+  type: string

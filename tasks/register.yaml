@@ -1,0 +1,32 @@
+---
+Name: consul-register
+Description: Register as a Server or Client
+Meta:
+  color: pink
+  feature-flags: sane-exit-codes
+  icon: life ring outline
+  title: Register Consul
+Documentation: |
+  Register consul as a server if not existing. If this node is 
+  identified as a 'leader', then this node becomes a server.
+
+Templates:
+- Name: register-server
+  Contents: |
+    #!/usr/bin/env bash
+    set -e
+
+    {{template "consul-funcs.tmpl" .}}
+
+    [[ "$CLUSTER_I_AM_LEADER" == "null" ]] && exit 0
+
+    echo "Consul: I am a leader, adding my IP to cluster list..."
+
+    {{ if not (.ParamExists "consul/ip") }}
+      echo "Param consul/ip must be set!"
+      exit 1
+    {{ end }}
+
+    add_me_to_cluster {{ coalesce (.Param "consul/ip") .Machine.Address }} ${CONSUL_SERVER_NODES_PARAM}
+
+

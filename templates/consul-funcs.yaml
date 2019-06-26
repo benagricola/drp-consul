@@ -1,0 +1,60 @@
+---
+ID: consul-funcs.tmpl
+Description: |
+  Shell functions used across various Consul Tasks
+
+Meta: {}
+Contents: |
+  # Helper for Consul Tasks
+  ###
+  #  This is a BASH script snippet intended to be run inside other BASH templates.
+  #
+  #
+  #  To use this in other templates, simply specify:
+  #
+  #         \{\{template "consul-funcs.tmpl" .\}\}
+  #
+  #  without the backslashes.
+  ###
+
+  {{ template "setup.tmpl" .}}
+  {{ template "cluster-shared.tmpl" .}}
+
+  CONSUL_SERVER_NODES_PARAM=consul/server-nodes
+
+  function wait_for_consul_cluster_leader() {
+    local _endpoint=${1:-127.0.0.1}
+    local _wait=${2:-7200}
+    NEXT_WAIT_TIME=0
+    echo "Waiting ${_wait}s for Consul cluster to elect a leader..."
+    until curl -sgfL http://${_endpoint}:8500/v1/status/leader >/dev/null; do
+      if [ "$NEXT_WAIT_TIME" -eq "${_wait}" ]; then
+        echo "Consul cluster leader not elected after waiting ${_wait}s! Something is wrong, aborting..."
+        exit 1
+      fi
+      sleep 1
+
+      # Workaround for weird bash 4.1+ issue, use pre-increment
+      ((++NEXT_WAIT_TIME))
+    done
+    echo "Consul cluster leader elected after ${NEXT_WAIT_TIME}s..."
+  }
+
+  function add_me_to_cluster() {
+    local identifier=${1}
+    local param=${2}
+
+    [ -z "${identifier}" ] && (echo "Identifier not passed as first argument of add_me_to_cluster, aborting..."; exit 1)
+
+
+    if [[ $(drpcli -T "${PROFILE_TOKEN}" profiles get "${CLUSTER_PROFILE}" param "${param}") == null ]]; then
+      drpcli -T "${PROFILE_TOKEN}" profiles add "${CLUSTER_PROFILE}" param "${param}" to "[]" || :
+      echo "Init: Added ${param} param to ${CLUSTER_PROFILE}"
+    fi
+
+    local EXISTING_MEMBERS=$(get_param "${param}" || "[]")
+
+    NEW_MEMBERS=$(jq "(. += [\"${identifier}\"]) | unique" <<< "${EXISTING_MEMBERS}")
+
+    drpcli -T "${PROFILE_TOKEN}" profiles set "${CLUSTER_PROFILE}" param "${param}" to "${NEW_MEMBERS}"
+  }

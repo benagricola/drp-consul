@@ -1,0 +1,16 @@
+---
+Name: consul-configure
+Description: Consul configured
+Meta:
+  color: blue
+  icon: life ring outline
+  title: Configuring Consul
+Documentation: |
+  Configuring a Consul cluster
+
+Reboot: false
+
+RunnerWait: true
+
+Tasks:
+  - consul-configure

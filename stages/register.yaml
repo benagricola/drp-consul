@@ -1,0 +1,14 @@
+---
+Name: consul-register
+Description: Register Consul Node with Cluster
+Meta:
+  color: teal
+  icon: life ring outline
+  title: Registering Consul Node
+Documentation: |
+  Register Consul Node
+
+Reboot: false
+
+Tasks:
+  - consul-register

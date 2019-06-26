@@ -1,0 +1,11 @@
+---
+Name: consul/settings
+Description: Consul settings
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  Settings applied to each consul client (and server) 
+Schema:
+  default: {}
+  type: object

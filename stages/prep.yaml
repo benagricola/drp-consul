@@ -1,0 +1,14 @@
+---
+Name: consul-prep
+Description: Install Consul binary and service files
+Meta:
+  color: red
+  icon: life ring outline
+  title: Installing Consul binary and service files
+Documentation: |
+  Installing Consul binary and service files
+
+Reboot: false
+
+Tasks:
+  - consul-prep

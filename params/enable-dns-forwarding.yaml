@@ -1,0 +1,11 @@
+---
+Name: consul/enable-dns-forwarding
+Description: Enable Consul DNS Forwarding
+Meta:
+  color: blue
+  icon: cubes
+Documentation: |
+  Enables local DNS forwarding by installing dnsmasq.
+Schema:
+  type: boolean
+  default: true

@@ -1,0 +1,48 @@
+---
+Name: consul-prep
+Description: Install Consul binary and service files
+Meta:
+  color: red
+  feature-flags: sane-exit-codes
+  icon: life ring outline
+  title: Installing Consul binary and service files
+Documentation: |
+  Install Consul binary and service files
+
+Templates:
+- Name: prep-consul
+  Contents: |
+    #!/bin/bash
+    set -e
+    
+    curl --retry 5 --max-time 60 -gsfLo/tmp/consul.zip {{ .Param "consul/release-url" }} 
+    zcat /tmp/consul.zip  > /tmp/consul-new
+
+    mkdir /etc/consul.d/ || echo "Consul config directory already exists..."
+    mkdir /var/lib/consul || echo "Consul data directory already exists..."
+
+- Name: consul-systemd
+  Path: /etc/systemd/system/consul.service
+  Contents: |
+    [Unit]
+    Description="Consul Service Mesh"
+    Documentation=https://www.consul.io/
+    Requires=network-online.target
+    After=network-online.target
+
+    [Service]
+    # Copy in new binary before start or restart
+    ExecStartPre=-/usr/bin/mv -f /tmp/consul-new /usr/local/bin/consul
+    ExecStartPre=/usr/bin/chmod +x /usr/local/bin/consul
+    ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/
+    ExecReload=/usr/local/bin/consul reload
+    KillMode=process
+    Restart=always
+    RestartSec=5
+    LimitNOFILE=65536
+
+    [Install]
+    WantedBy=multi-user.target
+
+
+    

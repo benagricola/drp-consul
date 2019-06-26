@@ -1,0 +1,11 @@
+---
+Name: consul/datacenter
+Description: Consul Datacenter
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  Consul datacenter
+Schema:
+  default: default
+  type: string

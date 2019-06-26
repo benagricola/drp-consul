@@ -1,0 +1,53 @@
+---
+Name: consul-configure
+Description: Configure as a Server or Client
+Meta:
+  color: teal
+  feature-flags: sane-exit-codes
+  icon: life ring outline
+  title: Configure Consul
+Documentation: |
+  Configure consul as a server or client
+
+Templates:
+- Name: configure-connectivity
+  Path: /etc/consul.d/0_drp.json
+  Contents: |
+    {{- $address := (coalesce (.Param "consul/ip") .Machine.Address) -}}
+    {
+      "bind_addr": "0.0.0.0", 
+      "addresses": {
+        "dns":   "127.0.0.1",
+        "http":  "0.0.0.0",
+        "https": "0.0.0.0",
+        "grpc":  "0.0.0.0" 
+      },
+    {{- if (has $address (.Param "consul/server-nodes")) }}
+      "server": true,
+      "bootstrap_expect": {{ .Param "cluster/leader-count" }},
+    {{ end }}
+      "retry_join": {{ toJson (without (.Param "consul/server-nodes") $address)  }},
+      "advertise_addr": {{ toJson $address }},
+      "node_name": "{{ coalesce (.Param "consul/node-name") .Machine.Name }}",
+      "datacenter": "{{ .Param "consul/datacenter" }}",
+      "data_dir": "{{ coalesce (.Param "consul/data-dir") "/var/lib/consul" }}"
+    }
+
+
+- Name: configure-general-settings
+  Path: /etc/consul.d/1_settings.json
+  Contents: |
+    {{ toPrettyJson (.Param "consul/settings") }}
+
+- Name: consul-start
+  Contents: |
+    #!/bin/bash
+
+    {{template "consul-funcs.tmpl" .}}
+
+    systemctl enable consul.service
+
+    systemctl is-active consul.service && systemctl restart consul.service || systemctl start consul.service
+    
+    wait_for_consul_cluster_leader
+    

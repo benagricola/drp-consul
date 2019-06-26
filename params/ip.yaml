@@ -1,0 +1,12 @@
+---
+Name: consul/ip
+Description: Consul Node IP
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  IP Address to use for Consul
+Schema:
+  type: string
+  format: ip-address
+  default: ""

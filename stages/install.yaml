@@ -1,0 +1,22 @@
+---
+Name: consul-install
+Description: Install Consul
+Meta:
+  color: pink
+  icon: life ring outline
+  title: Installing Consul
+Documentation: |
+  Installing a Consul cluster
+
+Reboot: false
+
+RunnerWait: true
+
+Tasks:
+  - consul-prep
+  - cluster-add       # Use RackN Clustering to add each node to cluster profile
+  - cluster-step  
+  - consul-register   # Register each node one-by-one
+  - cluster-remove
+  - cluster-sync      # Wait for processing nodes to complete
+  - consul-configure  # Configure and start consul, wait for cluster to converge

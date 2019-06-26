@@ -1,0 +1,11 @@
+---
+Name: consul/release-url
+Description: Consul Release URL
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  Consul URL to zip used to install
+Schema:
+  default: https://releases.hashicorp.com/consul/1.4.4/consul_1.4.4_linux_amd64.zip
+  type: string

@@ -1,0 +1,63 @@
+---
+stages:
+  - build
+
+variables:
+  DRP_CONTENT_PACK_VERSION: tip
+  DRP_CONTENT_PACKS: | 
+    drp-community-content
+    task-library
+
+cache:
+  paths:
+    - .apt/
+
+release:
+  stage: build
+  tags:
+    - docker
+  image: 
+    name: "digitalrebar/provision:latest"
+    entrypoint: [""]
+
+  before_script:
+    # Start DRP Server in background
+    - dr-provision --disable-tftp --disable-provisioner --disable-dhcp --disable-pxe >/dev/null 2>&1 & 
+    
+    # Wait for DRP to start up
+    - until drpcli info status; do sleep 1; done
+
+    # Download jq from running dr-provision server!
+    - drpcli files download jq > jq && chmod +x jq
+
+    - |
+      for pack in ${DRP_CONTENT_PACKS}; do 
+        drpcli contents upload catalog:${pack}-${DRP_CONTENT_PACK_VERSION} 2>&1 >/dev/null
+      done
+
+    - rm -f /etc/apt/apt.conf.d/docker-clean
+    - apt-get update -y -o dir::cache::archives=".apt/"
+    - apt-get install -y -o dir::cache::archives=".apt/" --no-install-recommends git
+
+  # Just bundle content, we've already test built it here
+  script:
+    # Generate version, source and name files
+    - git describe --tags > ._Version.meta
+    - echo -n "${CI_PROJECT_URL}" > ._Source.meta
+
+    # Remove .git directory as bundle can't work with it
+    - rm -rf .git
+
+    # Bundle contents
+    - drpcli -d contents bundle -F yaml consul.yaml
+
+      # Install bundled contents and grab warnings from creation process
+    - WARNINGS=$(drpcli -d contents create consul.yaml | ./jq '.Warnings')
+
+    # Succeed if no warnings, otherwise print warnings and fail
+    - ./jq --exit-status '. | length == 0' 2>&1 >/dev/null <<< "${WARNINGS}" && exit 0 || (echo "${WARNINGS}"; exit 1)
+
+  artifacts:
+    name: "consul-$CI_COMMIT_REF_NAME"
+    paths:
+      - consul.yaml

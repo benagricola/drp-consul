@@ -1,0 +1,15 @@
+---
+Name: consul/server-nodes
+Description: Consul Cluster Server Nodes
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  List of elected server nodes
+
+Schema:
+  default: []
+  type: array
+  items:
+    type: string
+    format: ip-address

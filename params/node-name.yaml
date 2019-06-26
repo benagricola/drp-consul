@@ -1,0 +1,11 @@
+---
+Name: consul/node-name
+Description: Consul Node Name
+Meta:
+  color: teal
+  icon: life ring outline
+Documentation: |
+  Consul Node Name
+Schema:
+  type: string
+  default: ""
